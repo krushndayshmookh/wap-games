@@ -2,7 +2,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, set up your environment variables:
+
+1. Copy the `.env.example` file to `.env.local`
+2. Update the variables in `.env.local` as needed
+
+```bash
+cp .env.example .env.local
+```
+
+Next, start your PocketBase server:
+
+```bash
+# Example - you might need to adjust this depending on your PocketBase setup
+./pocketbase serve
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -18,11 +34,30 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## PocketBase Integration
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+This project uses [PocketBase](https://pocketbase.io/) as its backend. The form is configured to work with a specific collection schema:
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Collection name: `wap_games`
+- Fields:
+  - `full_name` (text, required)
+  - `adypu_email` (email, required, domain: adypu.edu.in)
+  - `game_title` (text, required)
+  - `screenshot` (file, required)
+  - `hosted_link` (URL, required)
+  - `github_link` (URL, required, domain: github.com)
+  - `created` (auto date)
+  - `updated` (auto date)
+
+Make sure your PocketBase instance has this collection set up properly.
+
+## Environment Variables
+
+The following environment variables are used in this project:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_POCKETBASE_URL` | URL of your PocketBase server | `http://127.0.0.1:8090` |
 
 ## Learn More
 
