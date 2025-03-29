@@ -291,7 +291,9 @@ export default function Home() {
 
           {submissions.length > 0 && (
             <div className="mt-12">
-              <h2 className="text-2xl font-bold mb-6">Submitted Games</h2>
+              <h2 className="text-2xl font-bold mb-6">
+                Submitted Games ({submissions.length})
+              </h2>
               <div className="overflow-x-auto bg-base-100 rounded-box shadow-xl">
                 <table className="table table-zebra w-full">
                   <thead>
