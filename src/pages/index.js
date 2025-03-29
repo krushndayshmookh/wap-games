@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Head from 'next/head'
 import { Geist } from 'next/font/google'
 import PocketBase from 'pocketbase'
+import ReviewModal from '../components/ReviewModal'
 
 // Get the PocketBase URL from environment variable with fallback
 const pocketbaseUrl =
@@ -28,6 +29,9 @@ export default function Home() {
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [selectedGame, setSelectedGame] = useState(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviews, setReviews] = useState({})
 
   // Fetch records on component mount
   useEffect(() => {
@@ -38,13 +42,16 @@ export default function Home() {
   const getRecords = async () => {
     try {
       setLoading(true)
+      setError(null)
+
+      // Get the games
       const records = await pb.collection('wap_games').getList(1, 500, {
         sort: '-created',
       })
       setSubmissions(records.items)
     } catch (err) {
       console.error('Error fetching records:', err)
-      setError('Failed to load submissions. Please try again later.')
+      setError('Failed to load submissions. Please check your PocketBase connection and try again.')
     } finally {
       setLoading(false)
     }
@@ -114,6 +121,51 @@ export default function Home() {
       // Create preview URL
       const previewUrl = URL.createObjectURL(file)
       setScreenshotPreview(previewUrl)
+    }
+  }
+
+  const handleReviewAdded = async () => {
+    try {
+      // Refresh reviews for the selected game
+      const updatedReviews = await pb.collection('wap_games_comments').getList(1, 50, {
+        filter: `wap_game = "${selectedGame.id}"`,
+        sort: '-created',
+      })
+      
+      console.log('Updated reviews:', updatedReviews.items) // Debug log
+      setReviews(prev => ({
+        ...prev,
+        [selectedGame.id]: updatedReviews.items
+      }))
+    } catch (err) {
+      console.error('Error refreshing reviews:', err)
+      setError('Failed to refresh reviews. Please try again.')
+    }
+  }
+
+  const handleReviewButtonClick = async (submission) => {
+    try {
+      setLoading(true)
+      setSelectedGame(submission)
+      
+      // Fetch reviews for this game
+      const reviews = await pb.collection('wap_games_comments').getList(1, 50, {
+        filter: `wap_game = "${submission.id}"`,
+        sort: '-created',
+      })
+      
+      console.log('Fetched reviews:', reviews.items) // Debug log
+      setReviews(prev => ({
+        ...prev,
+        [submission.id]: reviews.items
+      }))
+      
+      setShowReviewModal(true)
+    } catch (err) {
+      console.error('Error fetching reviews:', err)
+      setError('Failed to load reviews. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -394,6 +446,25 @@ export default function Home() {
                               />
                             </svg>
                           </a>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            title="Add Review"
+                            onClick={() => handleReviewButtonClick(submission)}
+                            disabled={loading}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                              className="w-5 h-5">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+                              />
+                            </svg>
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -401,6 +472,18 @@ export default function Home() {
                 </table>
               </div>
             </div>
+          )}
+
+          {/* Review Modal */}
+          {showReviewModal && selectedGame && (
+            <ReviewModal
+              gameId={selectedGame.id}
+              onClose={() => {
+                setShowReviewModal(false)
+                setSelectedGame(null)
+              }}
+              onReviewAdded={handleReviewAdded}
+            />
           )}
         </div>
       </div>
