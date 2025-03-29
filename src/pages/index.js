@@ -38,7 +38,7 @@ export default function Home() {
   const getRecords = async () => {
     try {
       setLoading(true)
-      const records = await pb.collection('wap_games').getList(1, 50, {
+      const records = await pb.collection('wap_games').getList(1, 500, {
         sort: '-created',
       })
       setSubmissions(records.items)
